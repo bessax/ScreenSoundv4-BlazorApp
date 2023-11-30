@@ -1,24 +1,19 @@
 ﻿@page "/Artistas"
+@inject ArtistaAPI artistaAPI
 <h3>Artistas</h3>
-
-@if(carregando)
+@if (artistas is not null)
 {
-    <p>Carregando a página...</p>
-}
-else
-{
-    <p>Aqui entra a lista de artistas!</p>
+    foreach (var artista in artistas)
+    {
+        <p>@artista.Nome</p>
+    }
 }
 
-<button @onclick="Carregar">
-    Clique pra carregar
-</button>
 
 @code {
-    private bool carregando = true;
-
-    private void Carregar()
+    private ICollection<ArtistaResponse>? artistas;
+    protected override async Task OnInitializedAsync()
     {
-        carregando = false;
+        artistas = await artistaAPI.GetArtistasAsync();
     }
 }
