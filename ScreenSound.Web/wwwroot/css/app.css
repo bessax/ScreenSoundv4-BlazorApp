@@ -1,5 +1,11 @@
-html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+div.mud-main-content.main-content {
+    background: linear-gradient(180deg, #96F 0%, #000 100%) !important;
+    height: 100vh;
+}
+
+div.mud-grid-item.mud-grid-item-xs-2.app-menu {
+    background: linear-gradient(180deg, #202020 0%, rgba(0, 0, 0, 0.00) 100%) !important;
+    height: 100vh;
 }
 
 h1:focus {
