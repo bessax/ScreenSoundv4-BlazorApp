@@ -1,0 +1,24 @@
+﻿@page "/Artistas"
+<h3>Artistas</h3>
+
+@if(carregando)
+{
+    <p>Carregando a página...</p>
+}
+else
+{
+    <p>Aqui entra a lista de artistas!</p>
+}
+
+<button @onclick="Carregar">
+    Clique pra carregar
+</button>
+
+@code {
+    private bool carregando = true;
+
+    private void Carregar()
+    {
+        carregando = false;
+    }
+}
