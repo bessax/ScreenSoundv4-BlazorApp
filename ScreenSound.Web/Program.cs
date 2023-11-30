@@ -9,8 +9,14 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 
-builder.Services.AddHttpClient<ArtistaAPI>(client => {
-    client.BaseAddress = new Uri("https://localhost:7089");
+builder.Services.AddTransient<ArtistaAPI>();
+
+builder.Services.AddTransient<MusicaAPI>();
+
+builder.Services.AddHttpClient("API",client => {
+    client.BaseAddress = new Uri(builder.Configuration["APIServer:Url"]!);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
 });
+
+
 await builder.Build().RunAsync();
