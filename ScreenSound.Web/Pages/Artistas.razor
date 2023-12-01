@@ -1,5 +1,6 @@
 ﻿@page "/Artistas"
 @inject ArtistaAPI artistaAPI
+@inject NavigationManager navigationManager
 
 <MudStack Class="mt-4 mb-4" Row="true" Justify="Justify.SpaceBetween">
     <MudText Class="mb-4" Typo="Typo.h4">Artistas cadastrados</MudText>
@@ -11,10 +12,10 @@
     <MudGrid>
     @foreach (var artista in artistasDaPagina)
     {
-        <MudItem xs="3">
+           <MudItem xs="3">
                 <CardArtista Artista=artista />
-            </MudItem>
-    }
+            </MudItem>           
+    }       
     </MudGrid>
 } else
 {
