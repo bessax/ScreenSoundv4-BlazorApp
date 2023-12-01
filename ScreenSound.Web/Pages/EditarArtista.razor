@@ -92,7 +92,7 @@ else
     {
         try
         {
-            var requestEdit = new ArtistaRequestEdit(Artista.Id,Nome,Bio);
+            var requestEdit = new ArtistaRequestEdit(Artista.Id,Nome,Bio,Artista.FotoPerfil);
             await artistaAPI.UpdateArtistaAsync(requestEdit);
             Snackbar.Add("Artista atualizado com sucesso!", Severity.Success);
             navigationManager.NavigateTo("/Artistas");
