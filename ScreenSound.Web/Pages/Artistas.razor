@@ -1,5 +1,7 @@
 ﻿@page "/Artistas"
 @inject ArtistaAPI artistaAPI
+@inject IDialogService dialogService
+@inject ISnackbar Snackbar
 
 <MudStack Class="mt-4 mb-4" Row="true" Justify="Justify.SpaceBetween">
     <MudText Class="mb-4" Typo="Typo.h4">Artistas cadastrados</MudText>
@@ -12,8 +14,8 @@
     @foreach (var artista in artistasDaPagina)
     {
         <MudItem xs="3">
-                <CardArtista Artista=artista />
-            </MudItem>
+                <CardArtista Artista=artista BotaoExcluirClicado="OnClickHandler" />
+         </MudItem>
     }
     </MudGrid>
 } else
@@ -28,7 +30,28 @@
     private ICollection<ArtistaResponse>? artistasDaPagina;
     private ICollection<ArtistaResponse>? listaCompleta = Enumerable.Empty<ArtistaResponse>().ToList();
 
+    private async Task OnClickHandler(ArtistaResponse artista)
+    {
+        var parameters = new DialogParameters<ScreenSoundDialog>();
+        parameters.Add(d => d.Conteudo, $"Deseja realmente excluir o artista {artista.Nome}? ");
+        parameters.Add(d => d.TextoBotao, "Excluir");
+        var options = new DialogOptions() { CloseButton = true, MaxWidth = MaxWidth.ExtraSmall };
+        var dialog = await dialogService.ShowAsync<ScreenSoundDialog>("Excluir Artista", parameters, options);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            await artistaAPI.DeleteArtistaAsync(artista.Id);
+            Snackbar.Add("Artista excluído com sucesso!", Severity.Success);
+            await this.AtualizarLista();
+        }
+    }
+
     protected override async Task OnInitializedAsync()
+    {
+        await this.AtualizarLista();
+    }
+
+    private async Task AtualizarLista() 
     {
         listaCompleta = await artistaAPI.GetArtistasAsync();
         if (listaCompleta is not null)
