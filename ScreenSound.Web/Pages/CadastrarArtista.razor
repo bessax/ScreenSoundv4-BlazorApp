@@ -1,6 +1,74 @@
 ﻿@page "/CadastrarArtista"
-<h3>Cadastrar artista</h3>
+@using ScreenSound.Web.Requests
+@inject ArtistaAPI artistaAPI
+@inject NavigationManager navigationManager
+@inject ISnackbar Snackbar
+
+<MudPaper Class="px-8 pt-2 pb-4 mx-12 my-8" Justify="Justify.Center">
+
+    <MudText Class="mt-8" Typo="Typo.h4">Cadastro do Artista</MudText>
+
+    <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+
+        <MudTextField Class="mt-4" T="string" Placeholder="Nome do Artista" 
+            @bind-Value="nome"
+            Variant="Variant.Outlined"
+            Required="true" 
+            RequiredError="Campo obrigatório." />
+
+        <MudTextField Class="mt-4" T="string" Placeholder="Biografia do artista"
+            @bind-Value="biografia"
+            Variant="Variant.Outlined"
+            Lines="4"
+            Required="true" 
+            RequiredError="Campo obrigatório." />
+
+        <div class="d-flex align-center justify-space-between mt-4">
+            <MudButton 
+                Variant="Variant.Filled" 
+                Color="Color.Primary" 
+                Disabled="@(!success)" 
+                Class="ml-auto"
+                @onclick="Cadastrar">
+                Cadastrar
+            </MudButton>
+            <MudButton 
+                Variant="Variant.Filled" 
+                Color="Color.Info" 
+                Class="ml-3"
+                @onclick="VoltarParaListagem">
+                Voltar
+            </MudButton>
+        </div>
+
+    </MudForm>
+</MudPaper>
 
 @code {
+    bool success;
+    string[] errors = { };
+    MudForm form;
+    private string? nome;
+    private string? biografia;
 
+    private void VoltarParaListagem()
+    {
+        navigationManager.NavigateTo("/Artistas");
+    }
+
+    private async Task Cadastrar()
+    {
+        try
+        {
+            var request = new ArtistaRequest(nome!, biografia!);
+            await artistaAPI.AddArtistaAsync(request);
+            Snackbar.Add("Artista cadastrado com sucesso!", Severity.Success);
+            navigationManager.NavigateTo("/Artistas");
+        }
+        catch (Exception)
+        {
+            // Logger.LogInformation("Erro ao cadastrar artista!");
+        }
+
+    }
 }

@@ -1,16 +1,21 @@
 ﻿@page "/Artistas"
 @inject ArtistaAPI artistaAPI
-<h3>Artistas</h3>
+
+<MudText Class="mb-4" Typo="Typo.h4">Artistas cadastrados</MudText>
+
 @if (artistas is not null)
 {
     <MudGrid>
-    @foreach (var artista in artistas)
+    @foreach (var artista in artistas.OrderByDescending(x=>x.Id))
     {
         <MudItem xs="3">
             <CardArtista Artista=artista/>        
         </MudItem>
     }
     </MudGrid>
+} else
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
 
 @code {
