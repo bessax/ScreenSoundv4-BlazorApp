@@ -5,19 +5,13 @@
 <MudSnackbarProvider />
 
 <MudLayout>
-    <MudAppBar>
+    <MudAppBar Color="Color.Surface" Fixed="true" Elevation="2">
         <MudImage Src="images/screensound-logo.png"></MudImage>
     </MudAppBar>
-    <MudMainContent >
-        <MudGrid>
-            <MudItem xs="2">
-                <NavMenu></NavMenu>
-            </MudItem>
-            <MudItem xs="10">
-                <MudContainer Fixed="true">
-                    @Body
-                </MudContainer>
-            </MudItem>
-        </MudGrid>
+    <MudDrawer Open="true" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <NavMenu></NavMenu>
+    </MudDrawer>
+    <MudMainContent>
+        @Body
     </MudMainContent>
 </MudLayout>
