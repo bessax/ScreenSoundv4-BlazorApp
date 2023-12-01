@@ -17,9 +17,16 @@
 </MudCard>
 
 
-@code {
+    @code {
     [Parameter]
     public ArtistaResponse? Artista { get; set; }
 
-    public string Imagem => $"https://localhost:7089/{Artista!.FotoPerfil}";
+    public string? Imagem{ get; set; }
+
+    protected override void OnInitialized()
+    {
+        Imagem = Artista!.FotoPerfil!.Contains("Foto") ? $"https://localhost:7089/{Artista!.FotoPerfil}" : "images/cardArtista.png";
+
+    }
+    
 }
