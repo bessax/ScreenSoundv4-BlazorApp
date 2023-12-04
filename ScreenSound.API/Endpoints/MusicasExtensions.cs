@@ -29,7 +29,7 @@ public static class MusicasExtensions
             if (musica is null)
             {
                 return Results.NotFound();
-            }
+            }           
             return Results.Ok(EntityToResponse(musica));
 
         });
@@ -94,11 +94,13 @@ public static class MusicasExtensions
         return listaDeGeneros;
     }
 
+    //genero
     private static Genero RequestToEntity(GeneroRequest genero)
     {
         return new Genero() { Nome = genero.Nome, Descricao = genero.Descricao };
     }
 
+    //Musica
     private static ICollection<MusicaResponse> EntityListToResponseList(IEnumerable<Musica> musicaList)
     {
         return musicaList.Select(a => EntityToResponse(a)).ToList();
@@ -106,6 +108,6 @@ public static class MusicasExtensions
 
     private static MusicaResponse EntityToResponse(Musica musica)
     {
-        return new MusicaResponse(musica.Id, musica.Nome!, musica.Artista!.Id, musica.Artista.Nome);
+        return new MusicaResponse(musica.Id, musica.Nome!, musica.Artista!.Id, musica.Artista.Nome,musica.AnoLancamento );
     }
 }

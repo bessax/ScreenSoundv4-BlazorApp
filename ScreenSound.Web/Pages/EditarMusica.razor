@@ -1,4 +1,4 @@
-﻿@page "/CadastrarMusica"
+﻿@page "/EditarMusica/{NomeMusica}"
 @inject MusicaAPI musicaAPI
 @inject ArtistaAPI artistaAPI
 @inject GeneroAPI generoAPI
@@ -8,7 +8,7 @@
 
 <MudPaper Class="px-8 pt-2 pb-4 mx-12 my-8" Justify="Justify.Center">
 
-    <MudText Class="mt-8" Typo="Typo.h4">Cadastro de Música</MudText>
+    <MudText Class="mt-8" Typo="Typo.h4">Editar de Música</MudText>
 
     <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
 
@@ -25,7 +25,7 @@
                       Required="true"
                       RequiredError="Campo obrigatório." />
 
-        <MudTextField Class="mt-4" T="string"  Placeholder="Ano de lançamento"
+        <MudTextField Class="mt-4" T="string" Placeholder="Ano de lançamento"
                       @bind-Value="anoLancamento"
                       Variant="Variant.Outlined"
                       Lines="1"
@@ -37,7 +37,7 @@
             {
                 @foreach (var item in Generos!)
                 {
-                   <MudSelectItem Value=item/>
+                    <MudSelectItem Value=item />
                 }
             }
             @if (GenerosSelecionados is not null)
@@ -56,8 +56,14 @@
                        Color="Color.Primary"
                        Disabled="@(!success)"
                        Class="ml-auto"
-                       @onclick="Cadastrar">
-                Cadastrar
+                       @onclick="Editar">
+                Salvar
+            </MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Warning"
+                       Class="ml-3"
+                       @onclick="Deletar">
+                Excluir
             </MudButton>
             <MudButton Variant="Variant.Filled"
                        Color="Color.Info"
@@ -75,17 +81,21 @@
     bool success;
     string[] errors = { };
     MudForm? form;
+    //campos da tela
     private string? nome;
     private string? nomeArtista;
     private string? anoLancamento;
     private ICollection<GeneroResponse>? Generos { get; set; }
 
+    [Parameter]
+    public string? NomeMusica { get; set; }
+
+    public MusicaResponse? Musica { get; set; }
     private List<GeneroResponse>? GenerosSelecionados { get; set; } = new();
     private GeneroResponse? GeneroSelecionado { get; set; }
-
     private List<GeneroRequest> GenerosRequest { get; set; } = new();
 
-    public int MyProperty { get; set; }
+
 
     private void VoltarParaListagem()
     {
@@ -94,22 +104,26 @@
     protected override async Task OnInitializedAsync()
     {
         Generos = await generoAPI.GetGenerosAsync();
+        Musica = await musicaAPI.GetMusicaPorNomeAsync(NomeMusica!);
+        if (Musica is null)
+        {
+            Snackbar.Add("Música consultado não encontrado.", Severity.Error);
+            navigationManager.NavigateTo("/MusicasPorArtista");
+        }
+        nome = Musica!.Nome;
+        nomeArtista = Musica!.NomeArtista;
+        anoLancamento = Musica!.anoLancamento.ToString();
+        if (Musica!.Generos is not null)
+        {
+          GenerosSelecionados = Musica!.Generos.ToList();
+        }
+       
     }
 
-    private async Task Cadastrar()
+    private async Task Editar()
     {
         try
         {
-            var artista = artistaAPI.GetArtistaPorNomeAsync(nomeArtista!);
-            if (artista is null)
-            {
-                Snackbar.Add("Artista não encontrado.", Severity.Error);
-                return;
-            }
-            if (string.IsNullOrEmpty(nome))
-            {
-                return;
-            }
             if (GenerosSelecionados is not null)
             {
                 foreach (var item in GenerosSelecionados)
@@ -117,12 +131,9 @@
                     GenerosRequest.Add(new GeneroRequest(item.Nome, item.Descricao));
                 }
             }
-
-            var request = new MusicaRequest(nome!,artista!.Id,int.Parse(anoLancamento!),GenerosRequest);
-
-            await musicaAPI.AddMusicaAsync(request);
-
-            Snackbar.Add("Música cadastrada com sucesso!", Severity.Success);
+            var requestEdit = new MusicaRequestEdit(Musica!.Id, nome!, Musica.ArtistaId, int.Parse(anoLancamento!), GenerosRequest);
+            await musicaAPI.UpdateMusicaAsync(requestEdit);
+            Snackbar.Add("Música atualizado com sucesso!", Severity.Success);
             navigationManager.NavigateTo("/MusicasPorArtista");
         }
         catch (Exception ex)
@@ -135,6 +146,28 @@
             DialogService.Show<AlertDialog>("Alerta", parameters, options);
             return;
         }
+
+    }
+
+    private async Task Deletar()
+    {
+        try
+        {
+            await musicaAPI.DeleteMusicaAsync(Musica!.Id);
+            Snackbar.Add("Música excluída com sucesso!", Severity.Success);
+            navigationManager.NavigateTo("/MusicasPorArtista");
+        }
+        catch (Exception ex)
+        {
+            var options = new DialogOptions { CloseOnEscapeKey = true };
+            var parameters = new DialogParameters<AlertDialog>();
+            parameters.Add(x => x.ButtonText, "Ok");
+            parameters.Add(x => x.Color, Color.Error);
+            parameters.Add(x => x.ContentText, $"{ex.Message}.");
+            DialogService.Show<AlertDialog>("Alerta", parameters, options);
+            return;
+        }
+
     }
 
     private void GeneroOnValueChanged(GeneroResponse generoSelecionado)
@@ -147,5 +180,5 @@
             }
         }
     }
-   
+
 }
