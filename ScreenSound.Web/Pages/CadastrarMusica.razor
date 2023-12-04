@@ -4,6 +4,7 @@
 @inject GeneroAPI generoAPI
 @inject NavigationManager navigationManager
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
 <MudPaper Class="px-8 pt-2 pb-4 mx-12 my-8" Justify="Justify.Center">
 
@@ -31,13 +32,22 @@
                       Required="true"
                       RequiredError="Campo obrigatório." />
 
-        <MudSelect Class="mt-4" T="string" Label="Gêneros" Variant="Variant.Filled" AnchorOrigin="Origin.BottomCenter" onchange="">
+        <MudSelect Class="mt-4" T="GeneroResponse" ValueChanged="@GeneroOnValueChanged" Label="Gêneros" Variant="Variant.Filled" AnchorOrigin="Origin.BottomCenter">
             @if (Generos is not null)
             {
                 @foreach (var item in Generos!)
                 {
-                   <MudSelectItem Value=item.Nome/>
+                   <MudSelectItem Value=item/>
                 }
+            }
+            @if (GenerosSelecionados is not null)
+            {
+                <br />
+                foreach (var item in GenerosSelecionados)
+                {
+                    <MudAlert Severity="Severity.Info">@(item.Nome) adicionado como gênero.</MudAlert>
+                }
+
             }
         </MudSelect>
 
@@ -70,9 +80,16 @@
     private string? anoLancamento;
     private ICollection<GeneroResponse>? Generos { get; set; }
 
+    private List<GeneroResponse>? GenerosSelecionados { get; set; } = new();
+    private GeneroResponse? GeneroSelecionado { get; set; }
+
+    private List<GeneroRequest> GenerosRequest { get; set; } = new();
+
+    public int MyProperty { get; set; }
+
     private void VoltarParaListagem()
     {
-        navigationManager.NavigateTo("/Musicas");
+        navigationManager.NavigateTo("/MusicasPorArtista");
     }
     protected override async Task OnInitializedAsync()
     {
@@ -89,17 +106,46 @@
                 Snackbar.Add("Artista não encontrado.", Severity.Error);
                 return;
             }
-            var request = new MusicaRequest(nome!,artista.Result!.Id,int.Parse(anoLancamento!));
-            await musicaAPI.AddMusicaAsync(request);
-            Snackbar.Add("Música cadastrada com sucesso!", Severity.Success);
-            navigationManager.NavigateTo("/Musicas");
-        }
-        catch (Exception)
-        {
-            // Logger.LogInformation("Erro ao cadastrar artista!");
-        }
+            if (string.IsNullOrEmpty(nome))
+            {
+                return;
+            }
+            if (GenerosSelecionados is not null)
+            {
+                foreach (var item in GenerosSelecionados)
+                {
+                    GenerosRequest.Add(new GeneroRequest(item.Nome, item.Descricao));
+                }
+            }
 
+            var request = new MusicaRequest(nome!,artista!.Id,int.Parse(anoLancamento!),GenerosRequest);
+
+            await musicaAPI.AddMusicaAsync(request);
+
+            Snackbar.Add("Música cadastrada com sucesso!", Severity.Success);
+            navigationManager.NavigateTo("/MusicasPorArtista");
+        }
+        catch (Exception ex)
+        {
+            var options = new DialogOptions { CloseOnEscapeKey = true };
+            var parameters = new DialogParameters<AlertDialog>();
+            parameters.Add(x => x.ButtonText, "Ok");
+            parameters.Add(x => x.Color, Color.Error);
+            parameters.Add(x => x.ContentText, "Não existe artista com este nome.");
+            DialogService.Show<AlertDialog>("Alerta", parameters, options);
+            return;
+        }
     }
 
+    private void GeneroOnValueChanged(GeneroResponse generoSelecionado)
+    {
+        if (GenerosSelecionados is not null)
+        {
+            if (!GenerosSelecionados.Contains(generoSelecionado))
+            {
+                GenerosSelecionados!.Add(generoSelecionado);
+            }
+        }
+    }
    
 }
