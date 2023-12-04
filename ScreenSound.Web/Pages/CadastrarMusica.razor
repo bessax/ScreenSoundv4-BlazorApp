@@ -1,6 +1,105 @@
 ﻿@page "/CadastrarMusica"
-<h3>Cadastrar música</h3>
+@inject MusicaAPI musicaAPI
+@inject ArtistaAPI artistaAPI
+@inject GeneroAPI generoAPI
+@inject NavigationManager navigationManager
+@inject ISnackbar Snackbar
+
+<MudPaper Class="px-8 pt-2 pb-4 mx-12 my-8" Justify="Justify.Center">
+
+    <MudText Class="mt-8" Typo="Typo.h4">Cadastro de Música</MudText>
+
+    <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+
+        <MudTextField Class="mt-4" T="string" Placeholder="Nome da música/canção"
+                      @bind-Value="nome"
+                      Variant="Variant.Outlined"
+                      Required="true"
+                      RequiredError="Campo obrigatório." />
+
+        <MudTextField Class="mt-4" T="string" Placeholder="Nome do artista"
+                      @bind-Value="nomeArtista"
+                      Variant="Variant.Outlined"
+                      Lines="1"
+                      Required="true"
+                      RequiredError="Campo obrigatório." />
+
+        <MudTextField Class="mt-4" T="string"  Placeholder="Ano de lançamento"
+                      @bind-Value="anoLancamento"
+                      Variant="Variant.Outlined"
+                      Lines="1"
+                      Required="true"
+                      RequiredError="Campo obrigatório." />
+
+        <MudSelect Class="mt-4" T="string" Label="Gêneros" Variant="Variant.Filled" AnchorOrigin="Origin.BottomCenter" onchange="">
+            @if (Generos is not null)
+            {
+                @foreach (var item in Generos!)
+                {
+                   <MudSelectItem Value=item.Nome/>
+                }
+            }
+        </MudSelect>
+
+        <div class="d-flex align-center justify-space-between mt-4">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Disabled="@(!success)"
+                       Class="ml-auto"
+                       @onclick="Cadastrar">
+                Cadastrar
+            </MudButton>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Info"
+                       Class="ml-3"
+                       @onclick="VoltarParaListagem">
+                Voltar
+            </MudButton>
+        </div>
+
+    </MudForm>
+
+</MudPaper>
 
 @code {
+    bool success;
+    string[] errors = { };
+    MudForm? form;
+    private string? nome;
+    private string? nomeArtista;
+    private string? anoLancamento;
+    private ICollection<GeneroResponse>? Generos { get; set; }
 
+    private void VoltarParaListagem()
+    {
+        navigationManager.NavigateTo("/Musicas");
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        Generos = await generoAPI.GetGenerosAsync();
+    }
+
+    private async Task Cadastrar()
+    {
+        try
+        {
+            var artista = artistaAPI.GetArtistaPorNomeAsync(nomeArtista!);
+            if (artista is null)
+            {
+                Snackbar.Add("Artista não encontrado.", Severity.Error);
+                return;
+            }
+            var request = new MusicaRequest(nome,artista.Result.Id,int.Parse(anoLancamento));
+            await musicaAPI.AddMusicaAsync(request);
+            Snackbar.Add("Música cadastrada com sucesso!", Severity.Success);
+            navigationManager.NavigateTo("/Musicas");
+        }
+        catch (Exception)
+        {
+            // Logger.LogInformation("Erro ao cadastrar artista!");
+        }
+
+    }
+
+   
 }
