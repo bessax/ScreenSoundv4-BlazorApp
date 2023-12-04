@@ -89,7 +89,7 @@
                 Snackbar.Add("Artista não encontrado.", Severity.Error);
                 return;
             }
-            var request = new MusicaRequest(nome,artista.Result.Id,int.Parse(anoLancamento));
+            var request = new MusicaRequest(nome!,artista.Result!.Id,int.Parse(anoLancamento!));
             await musicaAPI.AddMusicaAsync(request);
             Snackbar.Add("Música cadastrada com sucesso!", Severity.Success);
             navigationManager.NavigateTo("/Musicas");
